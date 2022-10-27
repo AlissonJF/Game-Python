@@ -1,4 +1,5 @@
 import pygame
+import math
 import random
 
 # Inicia o pygame
@@ -24,11 +25,19 @@ playerY = 480
 playerX_change = 0
 
 # Inimigo
-inimigoImg = pygame.image.load('main-game/img/alien.png')
-inimigoX = random.randint(0, 800)
-inimigoY = random.randint(50, 150)
-inimigoX_change = 0.3
-inimigoY_change = 40
+inimigoImg = []
+inimigoX = []
+inimigoY = []
+inimigoX_change = []
+inimigoY_change = []
+num_inimigos = 6
+
+for i in range(num_inimigos):
+    inimigoImg.append(pygame.image.load('main-game/img/alien.png'))
+    inimigoX.append(random.randint(0, 800))
+    inimigoY.append(random.randint(50, 150))
+    inimigoX_change.append(0.3)
+    inimigoY_change.append(40)
 
 # Bullet
 
@@ -38,8 +47,21 @@ bulletImg = pygame.image.load('main-game/img/bullet.png')
 bulletX = 0
 bulletY = 480
 bulletX_change = 0
-bulletY_change = 1.5
+bulletY_change = 1
 bullet_state = 'ready'
+
+# Score --- Site para Fontes -> dafont.com
+score_value = 0
+font = pygame.font.Font('freesansbold.ttf', 32)
+
+textX = 10
+textY = 10
+
+
+
+def show_score(x,y):
+    score = font.render("Pontos: " + str(score_value), True, (255,255,255))
+    screen.blit(score, (x, y))
 
 
 
@@ -48,14 +70,22 @@ def player(x, y):
 
 
 
-def inimigo(x, y):
-    screen.blit(inimigoImg, (x, y))
+def inimigo(x, y, i):
+    screen.blit(inimigoImg[i], (x, y))
 
 
 def fire_bullet(x, y):
     global bullet_state
     bullet_state = 'fire'
     screen.blit(bulletImg, (x + 16,y + 10))
+
+
+def isCollision (inimigoX, inimigoY, bulletX, bulletY):
+    distance = math.sqrt(math.pow(inimigoX-bulletX, 2)) + (math.pow(inimigoY-bulletY, 2))
+    if distance < 27:
+        return True
+    else:
+        return False
 
 
 
@@ -76,9 +106,9 @@ while running:
         # Se a tecla for pressionada verifique se é direita ou esquerda
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                playerX_change = -0.3
+                playerX_change = -0.5
             if event.key == pygame.K_RIGHT:
-                playerX_change = 0.3
+                playerX_change = 0.5
             if event.key == pygame.K_SPACE:
                 if bullet_state == 'ready':
                     # Permite que o player consiga atirar mais de 1 vez
@@ -98,14 +128,25 @@ while running:
         playerX = 736
 
     # Movimentação do inimigo
-    inimigoX += inimigoX_change
+    for i in range(num_inimigos):
+        inimigoX[i] += inimigoX_change[i]
+        if inimigoX[i] <= 0:
+            inimigoX_change[i] = 0.3
+            inimigoY[i] += inimigoY_change[i]
+        elif inimigoX[i] >= 736:
+            inimigoX_change[i] = -0.3
+            inimigoY[i] += inimigoY_change[i]
 
-    if inimigoX <= 0:
-        inimigoX_change = 0.3
-        inimigoY += inimigoY_change
-    elif inimigoX >= 736:
-        inimigoX_change = -0.3
-        inimigoY += inimigoY_change
+        # Colisão
+        collision = isCollision(inimigoX[i], inimigoY[i], bulletX, bulletY)
+        if collision:
+            bulletY = 480
+            bullet_state = 'ready'
+            score_value += 1
+            inimigoX[i] = random.randint(0, 736)
+            inimigoY[i] = random.randint(50, 150)
+            
+        inimigo(inimigoX[i], inimigoY[i], i)
 
     # Movimentação da bala
     if bulletY <= 0:
@@ -117,6 +158,6 @@ while running:
         bulletY -= bulletY_change
 
     player(playerX, playerY)
-    inimigo(inimigoX, inimigoY)
+    show_score(textX, textY)
     pygame.display.update()
 
