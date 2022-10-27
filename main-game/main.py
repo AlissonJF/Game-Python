@@ -57,11 +57,19 @@ font = pygame.font.Font('freesansbold.ttf', 32)
 textX = 10
 textY = 10
 
+# Game Over texto
+over_font = pygame.font.Font('freesansbold.ttf', 64)
 
 
 def show_score(x,y):
     score = font.render("Pontos: " + str(score_value), True, (255,255,255))
     screen.blit(score, (x, y))
+
+
+
+def game_over_text():
+    over_text = over_font.render("Game Over", True, (255, 255, 255))
+    screen.blit(over_text, (200, 250))
 
 
 
@@ -129,6 +137,14 @@ while running:
 
     # Movimentação do inimigo
     for i in range(num_inimigos):
+
+        # Game Over
+        if inimigoY[i] > 440:
+            for j in range(num_inimigos):
+                inimigoY[j] = 2000
+            game_over_text()
+            break
+
         inimigoX[i] += inimigoX_change[i]
         if inimigoX[i] <= 0:
             inimigoX_change[i] = 0.3
